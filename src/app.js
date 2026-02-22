@@ -15,7 +15,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Простой тестовый маршрут (чтобы проверить, работает ли сервер)
+// Тестовый маршрут
 app.get('/', (req, res) => {
     res.json({ message: 'API работает!' });
 });
@@ -25,11 +25,11 @@ app.use('/api/auth', authRoutes);
 app.use('/api/goals', goalRoutes);
 app.use('/api/levels', levelRoutes);
 
-// Создание таблиц при запуске (но не ждем ошибок)
+// Создание таблиц
 Promise.all([
-    createUserTable().catch(e => console.log('Таблица users уже существует')),
-    createGoalTable().catch(e => console.log('Таблица goals уже существует')),
-    createLevelTable().catch(e => console.log('Таблица уровней уже существует'))
+    createUserTable().catch(err => console.log('Таблица users уже существует')),
+    createGoalTable().catch(err => console.log('Таблица goals уже существует')),
+    createLevelTable().catch(err => console.log('Таблица уровней уже существует'))
 ]).then(() => {
     console.log('✅ Проверка таблиц завершена');
 });
