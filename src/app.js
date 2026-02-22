@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
 require('dotenv').config();
 
 const authRoutes = require('./routes/authRoutes');
@@ -8,7 +7,7 @@ const goalRoutes = require('./routes/goalRoutes');
 const levelRoutes = require('./routes/levelRoutes');
 const { createUserTable } = require('./models/User');
 const { createGoalTable } = require('./models/Goal');
-const { createUserTasksTable } = require('./models/UserTasks');
+const { createLevelTable } = require('./models/UserTasks');
 
 const app = express();
 
@@ -16,22 +15,23 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Раздаем статические файлы из папки public
-app.use(express.static(path.join(__dirname, '../public')));
+// Простой тестовый маршрут (чтобы проверить, работает ли сервер)
+app.get('/', (req, res) => {
+    res.json({ message: 'API работает!' });
+});
 
-// Маршруты API
+// Маршруты
 app.use('/api/auth', authRoutes);
 app.use('/api/goals', goalRoutes);
 app.use('/api/levels', levelRoutes);
 
-// Для всех остальных запросов отдаем index.html
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../public/index.html'));
+// Создание таблиц при запуске (но не ждем ошибок)
+Promise.all([
+    createUserTable().catch(e => console.log('Таблица users уже существует')),
+    createGoalTable().catch(e => console.log('Таблица goals уже существует')),
+    createLevelTable().catch(e => console.log('Таблица уровней уже существует'))
+]).then(() => {
+    console.log('✅ Проверка таблиц завершена');
 });
-
-// Создание таблиц
-createUserTable();
-createGoalTable();
-createUserTasksTable();
 
 module.exports = app;
