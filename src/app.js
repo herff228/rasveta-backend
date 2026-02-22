@@ -7,7 +7,7 @@ const goalRoutes = require('./routes/goalRoutes');
 const levelRoutes = require('./routes/levelRoutes');
 const { createUserTable } = require('./models/User');
 const { createGoalTable } = require('./models/Goal');
-const { createLevelTable } = require('./models/UserTasks');
+const { createUserTasksTable } = require('./models/UserTasks');
 
 const app = express();
 
@@ -29,7 +29,7 @@ app.use('/api/levels', levelRoutes);
 Promise.all([
     createUserTable().catch(err => console.log('Таблица users уже существует')),
     createGoalTable().catch(err => console.log('Таблица goals уже существует')),
-    createLevelTable().catch(err => console.log('Таблица уровней уже существует'))
+    createUserTasksTable().catch(err => console.log('Таблица уровней уже существует'))
 ]).then(() => {
     console.log('✅ Проверка таблиц завершена');
 });
