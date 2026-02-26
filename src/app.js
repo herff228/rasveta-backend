@@ -5,6 +5,7 @@ require('dotenv').config();
 const authRoutes = require('./routes/authRoutes');
 const goalRoutes = require('./routes/goalRoutes');
 const levelRoutes = require('./routes/levelRoutes');
+const userRoutes = require('./routes/userRoutes'); // <-- новый импорт
 const { createUserTable } = require('./models/User');
 const { createGoalTable } = require('./models/Goal');
 const { createUserTasksTable } = require('./models/UserTasks');
@@ -24,6 +25,7 @@ app.get('/', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/goals', goalRoutes);
 app.use('/api/levels', levelRoutes);
+app.use('/api/users', userRoutes); // <-- новый маршрут
 
 // Создание таблиц
 Promise.all([

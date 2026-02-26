@@ -29,7 +29,12 @@ const register = async (req, res) => {
     res.status(201).json({
       message: 'Регистрация успешна!',
       token: token,
-      user: newUser
+      user: {
+        id: newUser.id,
+        email: newUser.email,
+        name: newUser.name,
+        emoji: newUser.emoji
+      }
     });
 
   } catch (error) {
@@ -61,7 +66,8 @@ const login = async (req, res) => {
       user: {
         id: user.id,
         email: user.email,
-        name: user.name
+        name: user.name,
+        emoji: user.emoji
       }
     });
 
