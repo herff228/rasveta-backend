@@ -30,27 +30,23 @@ const getTaskForLevel = async (req, res) => {
   }
 };
 
-// Отметка выполнения задания (ПРОСТО, БЕЗ ЗАДЕРЖЕК)
+// Отметка выполнения задания
 const completeLevelTask = async (req, res) => {
   try {
     const userId = req.user.id;
     const { level } = req.params;
 
-    // Получаем текущие задания
     const userTasks = await getUserTasks(userId);
     if (!userTasks) {
       return res.status(404).json({ error: 'Задания не найдены' });
     }
 
-    // Проверяем, не выполнено ли уже это задание
     if (userTasks[`level_${level}_completed`]) {
       return res.status(400).json({ error: 'Задание уже выполнено' });
     }
 
-    // Отмечаем задание выполненным
     const updated = await completeTask(userId, level);
 
-    // Проверяем, не выполнены ли все 9 заданий
     const allCompleted = [1,2,3,4,5,6,7,8,9].every(lvl => updated[`level_${lvl}_completed`]);
 
     res.json({
@@ -71,10 +67,7 @@ const restartGame = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // Генерируем новые 9 заданий
     const newTasks = await generateAllTasks();
-
-    // Сбрасываем задания в базе
     await resetAllTasks(userId, newTasks);
 
     res.json({

@@ -1,14 +1,12 @@
 const express = require('express');
-const { getTaskForLevel, completeLevelTask } = require('../controllers/levelController');
+const { getTaskForLevel, completeLevelTask, restartGame } = require('../controllers/levelController');
 const authMiddleware = require('../middleware/authMiddleware');
 const router = express.Router();
 
 router.use(authMiddleware);
 
-// Получить задание для конкретного уровня
 router.get('/:level/task', getTaskForLevel);
-
-// Отметить выполнение уровня
 router.post('/:level/complete', completeLevelTask);
+router.post('/restart', restartGame);
 
 module.exports = router;
