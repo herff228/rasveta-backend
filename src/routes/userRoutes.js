@@ -7,6 +7,6 @@ router.use(authMiddleware);
 
 router.get('/me', getCurrentUser);
 router.put('/emoji', updateEmoji);
-router.get('/stats', getUserStats); // 👈 НОВЫЙ МАРШРУТ
+router.get('/stats', getUserStats);
 
 module.exports = router;
