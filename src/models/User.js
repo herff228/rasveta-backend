@@ -8,6 +8,9 @@ const createUserTable = async () => {
       password VARCHAR(255) NOT NULL,
       name VARCHAR(100),
       emoji VARCHAR(10) DEFAULT '😊',
+      is_admin BOOLEAN DEFAULT FALSE,
+      lifetime_completed INTEGER DEFAULT 0,
+      game_cycles INTEGER DEFAULT 0,
       created_at TIMESTAMP DEFAULT NOW()
     );
   `;
@@ -20,8 +23,12 @@ const createUserTable = async () => {
 };
 
 const createUser = async (email, hashedPassword, name) => {
-  const queryText = 'INSERT INTO users (email, password, name, emoji) VALUES ($1, $2, $3, $4) RETURNING id, email, name, emoji, created_at';
-  const values = [email, hashedPassword, name, '😊'];
+  const queryText = `
+    INSERT INTO users (email, password, name, emoji, is_admin, lifetime_completed, game_cycles)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
+    RETURNING id, email, name, emoji, is_admin, lifetime_completed, game_cycles, created_at
+  `;
+  const values = [email, hashedPassword, name, '😊', false, 0, 0];
   try {
     const res = await pool.query(queryText, values);
     return res.rows[0];
@@ -42,7 +49,7 @@ const findUserByEmail = async (email) => {
 };
 
 const findUserById = async (id) => {
-  const queryText = 'SELECT id, email, name, emoji, created_at FROM users WHERE id = $1';
+  const queryText = 'SELECT id, email, name, emoji, is_admin, lifetime_completed, game_cycles, created_at FROM users WHERE id = $1';
   const values = [id];
   try {
     const res = await pool.query(queryText, values);
@@ -63,4 +70,44 @@ const updateUserEmoji = async (id, emoji) => {
   }
 };
 
-module.exports = { createUserTable, createUser, findUserByEmail, findUserById, updateUserEmoji };
+const incrementLifetimeCompleted = async (id) => {
+  const queryText = `
+    UPDATE users
+    SET lifetime_completed = lifetime_completed + 1
+    WHERE id = $1
+    RETURNING lifetime_completed, game_cycles
+  `;
+  const values = [id];
+  try {
+    const res = await pool.query(queryText, values);
+    return res.rows[0];
+  } catch (error) {
+    throw error;
+  }
+};
+
+const incrementGameCycles = async (id) => {
+  const queryText = `
+    UPDATE users
+    SET game_cycles = game_cycles + 1
+    WHERE id = $1
+    RETURNING game_cycles
+  `;
+  const values = [id];
+  try {
+    const res = await pool.query(queryText, values);
+    return res.rows[0];
+  } catch (error) {
+    throw error;
+  }
+};
+
+module.exports = {
+  createUserTable,
+  createUser,
+  findUserByEmail,
+  findUserById,
+  updateUserEmoji,
+  incrementLifetimeCompleted,
+  incrementGameCycles
+};

@@ -35,6 +35,7 @@ const createUserTasksTable = async () => {
       level_8_completed BOOLEAN DEFAULT FALSE,
       level_9_completed BOOLEAN DEFAULT FALSE,
       
+      last_completed_at TIMESTAMP, -- время последнего выполнения
       created_at TIMESTAMP DEFAULT NOW(),
       UNIQUE(user_id)
     );
@@ -90,7 +91,9 @@ const saveUserTasks = async (userId, tasks) => {
       level_6_completed = FALSE,
       level_7_completed = FALSE,
       level_8_completed = FALSE,
-      level_9_completed = FALSE
+      level_9_completed = FALSE,
+      
+      last_completed_at = NULL
     RETURNING *;
   `;
   
@@ -127,7 +130,13 @@ const getUserTasks = async (userId) => {
 };
 
 const completeTask = async (userId, level) => {
-  const queryText = `UPDATE user_tasks SET level_${level}_completed = TRUE WHERE user_id = $1 RETURNING *`;
+  const queryText = `
+    UPDATE user_tasks
+    SET level_${level}_completed = TRUE,
+        last_completed_at = NOW()
+    WHERE user_id = $1
+    RETURNING *
+  `;
   const values = [userId];
   try {
     const res = await pool.query(queryText, values);
@@ -137,4 +146,55 @@ const completeTask = async (userId, level) => {
   }
 };
 
-module.exports = { createUserTasksTable, saveUserTasks, getUserTasks, completeTask };
+const resetAllTasks = async (userId, newTasks) => {
+  const queryText = `
+    UPDATE user_tasks SET
+      level_1_title = $2, level_1_task = $3,
+      level_2_title = $4, level_2_task = $5,
+      level_3_title = $6, level_3_task = $7,
+      level_4_title = $8, level_4_task = $9,
+      level_5_title = $10, level_5_task = $11,
+      level_6_title = $12, level_6_task = $13,
+      level_7_title = $14, level_7_task = $15,
+      level_8_title = $16, level_8_task = $17,
+      level_9_title = $18, level_9_task = $19,
+      level_1_completed = FALSE,
+      level_2_completed = FALSE,
+      level_3_completed = FALSE,
+      level_4_completed = FALSE,
+      level_5_completed = FALSE,
+      level_6_completed = FALSE,
+      level_7_completed = FALSE,
+      level_8_completed = FALSE,
+      level_9_completed = FALSE,
+      last_completed_at = NULL
+    WHERE user_id = $1
+    RETURNING *
+  `;
+  const values = [
+    userId,
+    newTasks[0].title, newTasks[0].task,
+    newTasks[1].title, newTasks[1].task,
+    newTasks[2].title, newTasks[2].task,
+    newTasks[3].title, newTasks[3].task,
+    newTasks[4].title, newTasks[4].task,
+    newTasks[5].title, newTasks[5].task,
+    newTasks[6].title, newTasks[6].task,
+    newTasks[7].title, newTasks[7].task,
+    newTasks[8].title, newTasks[8].task
+  ];
+  try {
+    const res = await pool.query(queryText, values);
+    return res.rows[0];
+  } catch (error) {
+    throw error;
+  }
+};
+
+module.exports = {
+  createUserTasksTable,
+  saveUserTasks,
+  getUserTasks,
+  completeTask,
+  resetAllTasks
+};
