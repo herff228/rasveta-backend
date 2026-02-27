@@ -35,7 +35,7 @@ const updateEmoji = async (req, res) => {
   }
 };
 
-// 👇 НОВЫЙ МЕТОД — ПОЛУЧЕНИЕ СТАТИСТИКИ
+// 👇 ЭТА ФУНКЦИЯ ДОЛЖНА БЫТЬ ТОЛЬКО ОДИН РАЗ
 const getUserStats = async (req, res) => {
   try {
     const userId = req.user.id;
