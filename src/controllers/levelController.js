@@ -1,8 +1,6 @@
-const { getUserTasks, completeTask, resetAllTasks } = require('../models/UserTasks');
+const { getUserTasks, completeTask } = require('../models/UserTasks');
 const { findUserById, incrementLifetimeCompleted, incrementGameCycles } = require('../models/User');
-const { generateAllTasks } = require('../services/aiService');
 
-// Получение задания для конкретного уровня
 const getTaskForLevel = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -26,12 +24,11 @@ const getTaskForLevel = async (req, res) => {
     });
     
   } catch (error) {
-    console.error('Ошибка в getTaskForLevel:', error);
+    console.error(error);
     res.status(500).json({ error: 'Ошибка сервера' });
   }
 };
 
-// Отметка выполнения задания
 const completeLevelTask = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -63,10 +60,9 @@ const completeLevelTask = async (req, res) => {
         const hoursDiff = (now - last) / (1000 * 60 * 60); // разница в часах
         if (hoursDiff < 12) {
           const hoursLeft = 12 - hoursDiff;
-          const minutesLeft = Math.ceil((hoursLeft % 1) * 60);
-          const wholeHours = Math.floor(hoursLeft);
+          const minutesLeft = Math.ceil(hoursLeft * 60);
           return res.status(429).json({
-            error: `Следующее задание можно будет выполнить через ${wholeHours} ч ${minutesLeft} мин`
+            error: `Следующее задание можно будет выполнить через ${Math.floor(hoursLeft)} ч ${minutesLeft % 60} мин`
           });
         }
       }
@@ -97,31 +93,9 @@ const completeLevelTask = async (req, res) => {
     });
     
   } catch (error) {
-    console.error('Ошибка в completeLevelTask:', error);
+    console.error(error);
     res.status(500).json({ error: 'Ошибка сервера' });
   }
 };
 
-// Перезапуск игры (новые задания для всех уровней)
-const restartGame = async (req, res) => {
-  try {
-    const userId = req.user.id;
-
-    // Генерируем новые 9 заданий
-    const newTasks = await generateAllTasks();
-
-    // Сбрасываем задания в базе
-    const updated = await resetAllTasks(userId, newTasks);
-
-    res.json({
-      message: 'Игра перезапущена! Новые задания сгенерированы.',
-      success: true
-    });
-    
-  } catch (error) {
-    console.error('Ошибка при перезапуске игры:', error);
-    res.status(500).json({ error: 'Ошибка сервера' });
-  }
-};
-
-module.exports = { getTaskForLevel, completeLevelTask, restartGame };
+module.exports = { getTaskForLevel, completeLevelTask };
