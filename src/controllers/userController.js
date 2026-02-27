@@ -1,5 +1,6 @@
 const { findUserById, updateUserEmoji, getUserStats } = require('../models/User');
 
+// Получение данных текущего пользователя
 const getCurrentUser = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -12,6 +13,7 @@ const getCurrentUser = async (req, res) => {
   }
 };
 
+// Обновление смайлика
 const updateEmoji = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -25,8 +27,8 @@ const updateEmoji = async (req, res) => {
   }
 };
 
-// 👇 ЭТА ФУНКЦИЯ ДОЛЖНА БЫТЬ ТОЛЬКО ОДИН РАЗ
-const getUserStats = async (req, res) => {
+// ПОЛУЧЕНИЕ СТАТИСТИКИ — ЭТО ЕДИНСТВЕННОЕ ОБЪЯВЛЕНИЕ
+const getUserStatsController = async (req, res) => {
   try {
     const userId = req.user.id;
     const stats = await getUserStats(userId);
@@ -37,4 +39,4 @@ const getUserStats = async (req, res) => {
   }
 };
 
-module.exports = { getCurrentUser, updateEmoji, getUserStats };
+module.exports = { getCurrentUser, updateEmoji, getUserStatsController };
