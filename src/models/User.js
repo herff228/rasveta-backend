@@ -70,6 +70,7 @@ const updateUserEmoji = async (id, emoji) => {
   }
 };
 
+// 👇 НОВЫЕ ФУНКЦИИ ДЛЯ СТАТИСТИКИ
 const incrementLifetimeCompleted = async (id) => {
   const queryText = `
     UPDATE users
@@ -102,6 +103,17 @@ const incrementGameCycles = async (id) => {
   }
 };
 
+const getUserStats = async (id) => {
+  const queryText = 'SELECT lifetime_completed, game_cycles FROM users WHERE id = $1';
+  const values = [id];
+  try {
+    const res = await pool.query(queryText, values);
+    return res.rows[0];
+  } catch (error) {
+    throw error;
+  }
+};
+
 module.exports = {
   createUserTable,
   createUser,
@@ -109,5 +121,6 @@ module.exports = {
   findUserById,
   updateUserEmoji,
   incrementLifetimeCompleted,
-  incrementGameCycles
+  incrementGameCycles,
+  getUserStats
 };

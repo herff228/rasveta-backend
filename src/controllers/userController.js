@@ -1,5 +1,6 @@
-const { findUserById, updateUserEmoji } = require('../models/User');
+const { findUserById, updateUserEmoji, getUserStats } = require('../models/User');
 
+// Получение данных текущего пользователя
 const getCurrentUser = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -16,6 +17,7 @@ const getCurrentUser = async (req, res) => {
   }
 };
 
+// Обновление смайлика
 const updateEmoji = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -33,4 +35,16 @@ const updateEmoji = async (req, res) => {
   }
 };
 
-module.exports = { getCurrentUser, updateEmoji };
+// 👇 НОВЫЙ МЕТОД — ПОЛУЧЕНИЕ СТАТИСТИКИ
+const getUserStats = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const stats = await getUserStats(userId);
+    res.json(stats);
+  } catch (error) {
+    console.error('Ошибка получения статистики:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+};
+
+module.exports = { getCurrentUser, updateEmoji, getUserStats };
