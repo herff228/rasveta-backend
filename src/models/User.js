@@ -70,7 +70,7 @@ const updateUserEmoji = async (id, emoji) => {
   }
 };
 
-// 👇 НОВЫЕ ФУНКЦИИ ДЛЯ СТАТИСТИКИ
+// 👇 ФУНКЦИИ ДЛЯ СТАТИСТИКИ
 const incrementLifetimeCompleted = async (id) => {
   const queryText = `
     UPDATE users
@@ -122,5 +122,5 @@ module.exports = {
   updateUserEmoji,
   incrementLifetimeCompleted,
   incrementGameCycles,
-  getUserStats
+  getUserStats  // 👈 ЭТО ОДИН РАЗ
 };
