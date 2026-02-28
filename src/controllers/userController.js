@@ -1,3 +1,4 @@
+const pool = require('../config/db');
 const { findUserById, updateUserEmoji, getUserStats } = require('../models/User');
 
 // Получение данных текущего пользователя
@@ -27,7 +28,7 @@ const updateEmoji = async (req, res) => {
   }
 };
 
-// ПОЛУЧЕНИЕ СТАТИСТИКИ — ЭТО ЕДИНСТВЕННОЕ ОБЪЯВЛЕНИЕ
+// Получение статистики
 const getUserStatsController = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -39,4 +40,29 @@ const getUserStatsController = async (req, res) => {
   }
 };
 
-module.exports = { getCurrentUser, updateEmoji, getUserStatsController };
+// Удаление аккаунта пользователя
+const deleteAccount = async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const userId = req.user.id;
+    
+    await client.query('BEGIN');
+    
+    // Удаляем связанные данные
+    await client.query('DELETE FROM user_tasks WHERE user_id = $1', [userId]);
+    await client.query('DELETE FROM goals WHERE user_id = $1', [userId]);
+    await client.query('DELETE FROM users WHERE id = $1', [userId]);
+    
+    await client.query('COMMIT');
+    
+    res.json({ message: 'Аккаунт успешно удалён' });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Ошибка удаления аккаунта:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  } finally {
+    client.release();
+  }
+};
+
+module.exports = { getCurrentUser, updateEmoji, getUserStatsController, deleteAccount };
