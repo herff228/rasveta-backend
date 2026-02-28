@@ -8,6 +8,5 @@ router.use(authMiddleware);
 router.get('/:level/task', getTaskForLevel);
 router.post('/:level/complete', completeLevelTask);
 router.post('/restart', restartGame);
-router.get('/history/all', getAllTasksHistory);
 
 module.exports = router;
