@@ -97,4 +97,32 @@ const restartGame = async (req, res) => {
   }
 };
 
+// Получение истории всех заданий (все циклы)
+const getAllTasksHistory = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    
+    // Получаем все выполненные задания из таблицы completed_tasks
+    const queryText = `
+      SELECT level, task, completed_at 
+      FROM completed_tasks 
+      WHERE user_id = $1 
+      ORDER BY completed_at DESC
+    `;
+    const values = [userId];
+    const result = await pool.query(queryText, values);
+    
+    // Получаем текущие задания из user_tasks
+    const currentTasks = await getUserTasks(userId);
+    
+    res.json({
+      history: result.rows,
+      current: currentTasks
+    });
+  } catch (error) {
+    console.error('Ошибка получения истории:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+};
+
 module.exports = { getTaskForLevel, completeLevelTask, restartGame };
