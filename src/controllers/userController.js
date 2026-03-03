@@ -1,5 +1,6 @@
 const pool = require('../config/db');
 const { findUserById, updateUserEmoji, getUserStats } = require('../models/User');
+const { getUserAchievements } = require('../models/Achievement'); // 👈 ИМПОРТ
 
 // Получение данных текущего пользователя
 const getCurrentUser = async (req, res) => {
@@ -48,7 +49,6 @@ const deleteAccount = async (req, res) => {
     
     await client.query('BEGIN');
     
-    // Удаляем связанные данные
     await client.query('DELETE FROM user_tasks WHERE user_id = $1', [userId]);
     await client.query('DELETE FROM goals WHERE user_id = $1', [userId]);
     await client.query('DELETE FROM users WHERE id = $1', [userId]);
@@ -65,4 +65,11 @@ const deleteAccount = async (req, res) => {
   }
 };
 
-module.exports = { getCurrentUser, updateEmoji, getUserStatsController, deleteAccount };
+
+module.exports = { 
+  getCurrentUser, 
+  updateEmoji, 
+  getUserStatsController, 
+  deleteAccount,
+  getUserAchievements // 👈 ЭТО УЖЕ ИМПОРТИРОВАНО, ПРОСТО ЭКСПОРТИРУЕМ
+};

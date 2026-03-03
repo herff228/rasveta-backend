@@ -9,5 +9,6 @@ router.get('/me', getCurrentUser);
 router.put('/emoji', updateEmoji);
 router.get('/stats', getUserStatsController);
 router.delete('/me', deleteAccount);  // 👈 ЭТО НОВЫЙ МАРШРУТ
+router.get('/achievements', getUserAchievements);
 
 module.exports = router;

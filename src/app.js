@@ -5,10 +5,11 @@ require('dotenv').config();
 const authRoutes = require('./routes/authRoutes');
 const goalRoutes = require('./routes/goalRoutes');
 const levelRoutes = require('./routes/levelRoutes');
-const userRoutes = require('./routes/userRoutes'); // <-- новый импорт
+const userRoutes = require('./routes/userRoutes');
 const { createUserTable } = require('./models/User');
 const { createGoalTable } = require('./models/Goal');
 const { createUserTasksTable } = require('./models/UserTasks');
+const { createAchievementsTable } = require('./models/Achievement'); // 👈 ДОБАВЛЕНО
 
 const app = express();
 
@@ -25,13 +26,14 @@ app.get('/', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/goals', goalRoutes);
 app.use('/api/levels', levelRoutes);
-app.use('/api/users', userRoutes); // <-- новый маршрут
+app.use('/api/users', userRoutes);
 
-// Создание таблиц
+// Создание таблиц (ОДИН Promise.all)
 Promise.all([
     createUserTable().catch(err => console.log('Таблица users уже существует')),
     createGoalTable().catch(err => console.log('Таблица goals уже существует')),
-    createUserTasksTable().catch(err => console.log('Таблица уровней уже существует'))
+    createUserTasksTable().catch(err => console.log('Таблица уровней уже существует')),
+    createAchievementsTable().catch(err => console.log('Таблица достижений уже существует')) // 👈 ДОБАВЛЕНО
 ]).then(() => {
     console.log('✅ Проверка таблиц завершена');
 });

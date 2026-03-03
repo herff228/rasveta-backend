@@ -1,6 +1,8 @@
 const { getUserTasks, completeTask, resetAllTasks } = require('../models/UserTasks');
 const { findUserById, incrementLifetimeCompleted, incrementGameCycles } = require('../models/User');
 const { generateAllTasks } = require('../services/aiService');
+const { awardAchievement } = require('../models/Achievement');
+const pool = require('../config/db');
 
 // Получение задания для конкретного уровня
 const getTaskForLevel = async (req, res) => {
@@ -31,7 +33,7 @@ const getTaskForLevel = async (req, res) => {
   }
 };
 
-// Отметка выполнения задания (с вечной статистикой)
+// Отметка выполнения задания (с вечной статистикой и достижениями)
 const completeLevelTask = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -52,6 +54,33 @@ const completeLevelTask = async (req, res) => {
     // 👇 УВЕЛИЧИВАЕМ СЧЁТЧИК ВЫПОЛНЕННЫХ ЗАДАНИЙ (lifetime)
     await incrementLifetimeCompleted(userId);
 
+    // 👇 ПОЛУЧАЕМ АКТУАЛЬНЫЙ ПРОГРЕСС ПО ЛОКАЦИЯМ
+    const forestProgress = [1,2,3].filter(lvl => updated[`level_${lvl}_completed`]).length;
+    const hillsProgress = [4,5,6].filter(lvl => updated[`level_${lvl}_completed`]).length;
+    const beachProgress = [7,8,9].filter(lvl => updated[`level_${lvl}_completed`]).length;
+    const totalCompleted = forestProgress + hillsProgress + beachProgress;
+
+    // 👇 ПРОВЕРЯЕМ И ВЫДАЕМ ДОСТИЖЕНИЯ
+    const achievements = [];
+
+    // Лес
+    if (forestProgress === 3) achievements.push('forest');
+    // Холмы
+    if (hillsProgress === 3) achievements.push('hills');
+    // Пляж
+    if (beachProgress === 3) achievements.push('beach');
+    // Первый шаг
+    if (totalCompleted >= 1) achievements.push('first_step');
+    // На полпути
+    if (totalCompleted >= 5) achievements.push('half_way');
+    // Мастер (все 9 заданий)
+    if (totalCompleted === 9) achievements.push('master');
+
+    // Сохраняем все полученные достижения
+    for (const ach of achievements) {
+      await awardAchievement(userId, ach);
+    }
+
     // Проверяем, не выполнены ли все 9 заданий
     const allCompleted = [1,2,3,4,5,6,7,8,9].every(lvl => updated[`level_${lvl}_completed`]);
 
@@ -60,6 +89,24 @@ const completeLevelTask = async (req, res) => {
       // 👇 УВЕЛИЧИВАЕМ СЧЁТЧИК ПРОЙДЕННЫХ ИГР
       await incrementGameCycles(userId);
       gameCompleted = true;
+      
+      // 👇 ДОПОЛНИТЕЛЬНЫЕ ДОСТИЖЕНИЯ ЗА ПРОХОЖДЕНИЕ
+      const user = await findUserById(userId);
+      
+      // Исследователь (3 игры)
+      if (user.game_cycles >= 3) {
+        await awardAchievement(userId, 'explorer');
+      }
+      
+      // Легенда (5 игр)
+      if (user.game_cycles >= 5) {
+        await awardAchievement(userId, 'legend');
+      }
+      
+      // Ветеран (50 заданий)
+      if (user.lifetime_completed >= 50) {
+        await awardAchievement(userId, 'veteran');
+      }
     }
 
     res.json({
@@ -125,4 +172,9 @@ const getAllTasksHistory = async (req, res) => {
   }
 };
 
-module.exports = { getTaskForLevel, completeLevelTask, restartGame };
+module.exports = { 
+  getTaskForLevel, 
+  completeLevelTask, 
+  restartGame,
+  getAllTasksHistory
+};
