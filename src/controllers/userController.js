@@ -1,6 +1,6 @@
 const pool = require('../config/db');
 const { findUserById, updateUserEmoji, getUserStats } = require('../models/User');
-const { getUserAchievements } = require('../models/Achievement'); // 👈 ИМПОРТ
+const { getUserAchievements } = require('../models/Achievement');
 
 // Получение данных текущего пользователя
 const getCurrentUser = async (req, res) => {
@@ -41,6 +41,18 @@ const getUserStatsController = async (req, res) => {
   }
 };
 
+// Получение достижений пользователя
+const getAchievements = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const achievements = await getUserAchievements(userId);
+    res.json(achievements);
+  } catch (error) {
+    console.error('Ошибка получения достижений:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+};
+
 // Удаление аккаунта пользователя
 const deleteAccount = async (req, res) => {
   const client = await pool.connect();
@@ -49,6 +61,8 @@ const deleteAccount = async (req, res) => {
     
     await client.query('BEGIN');
     
+    // Удаляем все связанные данные в правильном порядке
+    await client.query('DELETE FROM user_achievements WHERE user_id = $1', [userId]);
     await client.query('DELETE FROM user_tasks WHERE user_id = $1', [userId]);
     await client.query('DELETE FROM goals WHERE user_id = $1', [userId]);
     await client.query('DELETE FROM users WHERE id = $1', [userId]);
@@ -65,11 +79,10 @@ const deleteAccount = async (req, res) => {
   }
 };
 
-
 module.exports = { 
   getCurrentUser, 
   updateEmoji, 
   getUserStatsController, 
   deleteAccount,
-  getUserAchievements // 👈 ЭТО УЖЕ ИМПОРТИРОВАНО, ПРОСТО ЭКСПОРТИРУЕМ
+  getAchievements
 };

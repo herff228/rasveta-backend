@@ -44,6 +44,7 @@ const completeLevelTask = async (req, res) => {
       return res.status(404).json({ error: 'Задания не найдены' });
     }
 
+    // Проверяем, не выполнено ли уже задание
     if (userTasks[`level_${level}_completed`]) {
       return res.status(400).json({ error: 'Задание уже выполнено' });
     }
@@ -51,16 +52,19 @@ const completeLevelTask = async (req, res) => {
     // Отмечаем задание выполненным
     const updated = await completeTask(userId, level);
 
-    // 👇 УВЕЛИЧИВАЕМ СЧЁТЧИК ВЫПОЛНЕННЫХ ЗАДАНИЙ (lifetime)
+    // УВЕЛИЧИВАЕМ СЧЁТЧИК ВЫПОЛНЕННЫХ ЗАДАНИЙ (lifetime)
     await incrementLifetimeCompleted(userId);
 
-    // 👇 ПОЛУЧАЕМ АКТУАЛЬНЫЙ ПРОГРЕСС ПО ЛОКАЦИЯМ
+    // ПОЛУЧАЕМ АКТУАЛЬНЫЕ ДАННЫЕ ПОЛЬЗОВАТЕЛЯ
+    const user = await findUserById(userId);
+
+    // ПОЛУЧАЕМ АКТУАЛЬНЫЙ ПРОГРЕСС ПО ЛОКАЦИЯМ
     const forestProgress = [1,2,3].filter(lvl => updated[`level_${lvl}_completed`]).length;
     const hillsProgress = [4,5,6].filter(lvl => updated[`level_${lvl}_completed`]).length;
     const beachProgress = [7,8,9].filter(lvl => updated[`level_${lvl}_completed`]).length;
     const totalCompleted = forestProgress + hillsProgress + beachProgress;
 
-    // 👇 ПРОВЕРЯЕМ И ВЫДАЕМ ДОСТИЖЕНИЯ
+    // ПРОВЕРЯЕМ И ВЫДАЕМ ДОСТИЖЕНИЯ
     const achievements = [];
 
     // Лес
@@ -75,6 +79,11 @@ const completeLevelTask = async (req, res) => {
     if (totalCompleted >= 5) achievements.push('half_way');
     // Мастер (все 9 заданий)
     if (totalCompleted === 9) achievements.push('master');
+    
+    // Ветеран (50 заданий) - проверяем при каждом выполнении
+    if (user.lifetime_completed >= 50) {
+      achievements.push('veteran');
+    }
 
     // Сохраняем все полученные достижения
     for (const ach of achievements) {
@@ -86,26 +95,21 @@ const completeLevelTask = async (req, res) => {
 
     let gameCompleted = false;
     if (allCompleted) {
-      // 👇 УВЕЛИЧИВАЕМ СЧЁТЧИК ПРОЙДЕННЫХ ИГР
+      // УВЕЛИЧИВАЕМ СЧЁТЧИК ПРОЙДЕННЫХ ИГР
       await incrementGameCycles(userId);
       gameCompleted = true;
       
-      // 👇 ДОПОЛНИТЕЛЬНЫЕ ДОСТИЖЕНИЯ ЗА ПРОХОЖДЕНИЕ
-      const user = await findUserById(userId);
+      // ПОЛУЧАЕМ ОБНОВЛЕННЫЕ ДАННЫЕ ПОЛЬЗОВАТЕЛЯ
+      const updatedUser = await findUserById(userId);
       
       // Исследователь (3 игры)
-      if (user.game_cycles >= 3) {
+      if (updatedUser.game_cycles >= 3) {
         await awardAchievement(userId, 'explorer');
       }
       
       // Легенда (5 игр)
-      if (user.game_cycles >= 5) {
+      if (updatedUser.game_cycles >= 5) {
         await awardAchievement(userId, 'legend');
-      }
-      
-      // Ветеран (50 заданий)
-      if (user.lifetime_completed >= 50) {
-        await awardAchievement(userId, 'veteran');
       }
     }
 

@@ -4,7 +4,7 @@ const {
   updateEmoji, 
   getUserStatsController, 
   deleteAccount,
-  getUserAchievements 
+  getAchievements 
 } = require('../controllers/userController');
 const authMiddleware = require('../middleware/authMiddleware');
 const router = express.Router();
@@ -15,6 +15,6 @@ router.get('/me', getCurrentUser);
 router.put('/emoji', updateEmoji);
 router.get('/stats', getUserStatsController);
 router.delete('/me', deleteAccount);
-router.get('/achievements', getUserAchievements); // 👈 ЭТО ДОБАВЛЕНО
+router.get('/achievements', getAchievements);
 
 module.exports = router;
