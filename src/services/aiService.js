@@ -1,6 +1,81 @@
+const axios = require('axios');
+
 const generateAllTasks = async () => {
-  console.log('🔄 Использую задания по умолчанию');
-  return getDefaultTasks();
+  // Проверяем, есть ли ключи
+  if (!process.env.YANDEX_API_KEY || !process.env.YANDEX_FOLDER_ID) {
+    console.log('⚠️ Yandex GPT не настроен. Использую задания по умолчанию');
+    return getDefaultTasks();
+  }
+
+  try {
+    console.log('🔄 Генерирую 9 заданий через Yandex GPT...');
+    
+    const response = await axios.post(
+      'https://llm.api.cloud.yandex.net/foundationModels/v1/completion',
+      {
+        modelUri: `gpt://${process.env.YANDEX_FOLDER_ID}/yandexgpt/latest`,
+        completionOptions: {
+          stream: false,
+          temperature: 0.9,
+          maxTokens: 800
+        },
+        messages: [
+          {
+            role: 'user',
+            text: `Придумай 9 разных заданий для саморазвития. 
+Для каждого задания напиши КОРОТКОЕ НАЗВАНИЕ (2-4 слова) и описание.
+
+Формат (пример):
+1. Утренняя прогулка: погуляй в парке 30 минут
+2. Час с книгой: прочитай 20 страниц
+... и так до 9.`
+          }
+        ]
+      },
+      {
+        headers: {
+          'Authorization': `Api-Key ${process.env.YANDEX_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 10000
+      }
+    );
+    
+    const content = response.data.result.alternatives[0].message.text;
+    console.log('✅ Ответ от Yandex GPT получен');
+    
+    const tasks = [];
+    const lines = content.split('\n');
+    
+    for (let i = 1; i <= 9; i++) {
+      let title = getDefaultTitle(i);
+      let task = getDefaultTask(i);
+      
+      for (const line of lines) {
+        if (line.startsWith(`${i}.`) || line.startsWith(`${i})`)) {
+          const text = line.substring(line.indexOf('.') + 1).trim();
+          const parts = text.split(':');
+          if (parts.length >= 2) {
+            title = parts[0].trim();
+            task = parts.slice(1).join(':').trim();
+          } else {
+            task = text;
+          }
+          break;
+        }
+      }
+      
+      tasks.push({ title, task });
+    }
+    
+    console.log('✅ Задания сгенерированы через Yandex GPT');
+    return tasks;
+    
+  } catch (error) {
+    console.error('❌ Ошибка Yandex GPT:', error.message);
+    console.log('🔄 Использую задания по умолчанию');
+    return getDefaultTasks();
+  }
 };
 
 const getDefaultTitle = (level) => {
