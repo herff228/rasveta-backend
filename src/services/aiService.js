@@ -7,7 +7,7 @@ const generateAllTasks = async () => {
     const response = await axios.post(
       'https://api.mistral.ai/v1/chat/completions',
       {
-        model: 'mistral-tiny',
+        model: 'mistral-small-latest',
         messages: [
           {
             role: 'user',
@@ -31,11 +31,29 @@ const generateAllTasks = async () => {
 Задание 2: прочитай 20 страниц любой книги в тишине
 
 Название 3: Творческий вечер
-Задание 3: нарисуй пейзаж акварелью или карандашами`
+Задание 3: нарисуй пейзаж акварелью или карандашами
+
+Название 4: Кулинарный эксперимент
+Задание 4: приготовь новое блюдо по рецепту из интернета
+
+Название 5: Зарядка для тела
+Задание 5: сделай 20 приседаний, 15 отжиманий, планка 2 минуты
+
+Название 6: Звонок близким
+Задание 6: позвони другу или родственнику, с которым давно не общался
+
+Название 7: Прогулка на природе
+Задание 7: сходи в лес или парк, собери букет из листьев
+
+Название 8: Культурный выход
+Задание 8: посети музей, выставку или галерею
+
+Название 9: Планирование будущего
+Задание 9: напиши подробный план на следующий месяц`
           }
         ],
         temperature: 0.9,
-        max_tokens: 500
+        max_tokens: 800
       },
       {
         headers: {
@@ -47,12 +65,12 @@ const generateAllTasks = async () => {
     
     const content = response.data.choices[0].message.content;
     console.log('✅ Ответ от Mistral получен');
+    console.log('📝 Ответ:', content);
     
     const tasks = [];
     const lines = content.split('\n').filter(line => line.trim() !== '');
     
     for (let i = 1; i <= 9; i++) {
-      // Ищем строку с названием для текущего уровня
       let titleLine = lines.find(l => l.includes(`Название ${i}:`)) || 
                       lines.find(l => l.toLowerCase().includes(`название ${i}`));
       let taskLine = lines.find(l => l.includes(`Задание ${i}:`)) || 
@@ -63,7 +81,6 @@ const generateAllTasks = async () => {
       
       if (titleLine) {
         title = titleLine.split(':')[1]?.trim() || '';
-        // Очищаем название от MarkDown и лишних символов
         title = title.replace(/\*\*/g, '').replace(/\*/g, '').replace(/_/g, '').trim();
       }
       
@@ -72,7 +89,6 @@ const generateAllTasks = async () => {
         task = task.replace(/\*\*/g, '').replace(/\*/g, '').replace(/_/g, '').trim();
       }
       
-      // Если не нашли название или задание – используем запасные
       if (!title) title = getDefaultTitle(i);
       if (!task) task = getDefaultTask(i);
       
@@ -85,7 +101,8 @@ const generateAllTasks = async () => {
     return tasks;
     
   } catch (error) {
-    console.log('❌ Ошибка генерации, беру из списка');
+    console.error('❌ Ошибка генерации через Mistral:', error.response?.data || error.message);
+    console.log('🔄 Использую задания по умолчанию');
     return getDefaultTasks();
   }
 };
