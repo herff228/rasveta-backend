@@ -1,5 +1,3 @@
-const axios = require('axios');
-
 const generateAllTasks = async () => {
   console.log('🔄 Использую задания по умолчанию');
   return getDefaultTasks();
